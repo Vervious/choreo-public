@@ -1,0 +1,30 @@
+
+syntax = "proto3";
+
+
+package p2p;
+
+// protoc -I . choreo.proto --go_out=plugins=grpc:.
+
+
+service State {
+  rpc Get (ReadStateRequest) returns (ReadStateReply) {}
+  rpc Set (WriteStateRequest) returns (WriteStateReply) {}
+}
+
+message ReadStateRequest {
+  string address = 1;
+}
+
+message ReadStateReply {
+  string address = 1;
+  bytes value = 2;
+}
+
+message WriteStateRequest {
+  string address = 1;
+  bytes value = 2;
+}
+
+message WriteStateReply {
+}
