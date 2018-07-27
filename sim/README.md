@@ -4,6 +4,16 @@ This folder contains simulations of Dolevs, based on/copied from the other libra
 
 It hooks a WebGL visualization onto these simulations, and also removes the grpc component (since we are running experiments locally). We may be able to port this to visualizing deployed clusters when needed.
 
+## To Run:
+```
+cd /choreo-public/sim/web
+python -m SimpleHTTPServer
+
+go get github.com/Vervious/eventsource
+cd /choreo-public/sim
+go run *.go
+```
+
 
 ## Simulation
 
