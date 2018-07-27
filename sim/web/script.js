@@ -39,7 +39,8 @@ function main_data() {
 
 var lastMsg = -1;
 var domain = window.location.hostname;
-console.log(domain);
+// var domain = "bob.expert"
+console.log("connecting to: " + domain);
 msgSource = new EventSource(`http://` + domain + `:8910/ev`);
 // Attach listeners
 msgSource.addEventListener('message', processMessage);

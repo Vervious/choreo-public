@@ -99,6 +99,8 @@ func (ps *PublicSwarmUpdateServer) ListenAndServe(port string) {
 	ps.cachedSwarmUpdates = make([]SwarmUpdate, 0)
 	ps.stream = eventsource.NewStream()
 
+	fmt.Println("Sim server is now running on port 8910.")
+
 	ps.stream.ClientConnectHook(func(r *http.Request, c *eventsource.Client) {
 		fmt.Println("Received connection from", r.Host)
 	})
