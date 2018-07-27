@@ -29,7 +29,8 @@ for (var [key, value] of FD.entries()) {
     });
 
     // Set up our request
-    XHR.open("POST", "http://localhost:8910/toolbox");
+    var domain = window.location.hostname;
+    XHR.open("POST", "http://" + domain + "/toolbox");
 
     // The data sent is what the user provided in the form
     XHR.send(FD);
