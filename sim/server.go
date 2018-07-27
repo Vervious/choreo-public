@@ -140,6 +140,20 @@ func (ps *PublicSwarmUpdateServer) BroadcastCachedSwarmUpdates() {
 	ps.cachedSwarmUpdates = make([]SwarmUpdate, 0)
 }
 
+func outputHeartbeat(pinkslip chan struct{}) {
+	D := time.Duration(10) * time.Minute
+	ticker := time.NewTicker(D)
+
+	for {
+		select {
+		case <-ticker.C:
+			fmt.Printf("[%s]: running...\n", time.Now().Format(time.RFC1123))
+		case <-pinkslip:
+			return
+		}
+	}
+}
+
 func main() {
 	NUM_NODES := 100
 	// this can be changed by toolbox so is just a starting value
@@ -151,6 +165,7 @@ func main() {
 	sn.uniformEdgeReliability = UNIFORM_EDGE_RELIABILITY
 	sn.Init() // I really wish go let you set default memory values
 	pinkslip := listen_kill_signal()
+	go outputHeartbeat(pinkslip)
 	for i := 0; i < NUM_NODES; i++ {
 		go SpawnDolevNode(i, sn, NUM_NODES, ps, pinkslip)
 	}
