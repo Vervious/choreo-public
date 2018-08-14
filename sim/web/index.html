@@ -15,17 +15,23 @@
     <form method="POST" name="params" id="toolbox" enctype="multipart/form-data">
 
     <label>uniform edge reliability:</label><br/>
-    <input type="range" name="edgeInput" id="edgeInput" value="80" min="0" max="100" oninput="edgeOutput.value = edgeInput.value">
-    <output name="edgeOutput" id="edgeOutput">80</output><br/>
+    <input type="range" name="edgeInput" id="edgeInput" value="100" min="0" max="100" oninput="edgeOutput.value = edgeInput.value">
+    <output name="edgeOutput" id="edgeOutput">100</output><br/>
 
-    <label>mean base clock freq (ms):</label>
-    <input type="text" value="30" name="meanBaseClockSkew"><br>
-
-    <label>base clock skew (natural freq) (stdv): </label><br/>
+    <label>Real target day length (in centiseconds (cs), = w, >= 2d)</label>
+    <input type="text" value="100" name="meanBaseClockSkew"><br>
+<!--
+    <label>Real local day length skew (cs, = t. Uniformly picked between [-t, t]): </label><br/>
     <input type="text" value="0" name="baseClockSkew"><br>
+ -->
+    <label>constant message delay (cs, = d):</label><br/>
+    <input type="text" value="0" name="constantMessageDelay"><br>
 
-    <label>dynamic clock skew (stdv):</label><br/>
-    <input type="text" value="0" name="dynClockSkew"><br>
+    <label>Actual target round length (cs, >= 2d + maxt):</label>
+    <input type="text" value="10" name="roundTime"><br>
+
+    <label>Skewed clock (cs = t = max(skew in one real day)):</label>
+    <input type="text" value="0" name="roundTimeSkew"><br>
 
     <label>crashed node prob (inf clock skew that also affects how fast node processes messages (1 sec recovery)):</label><br/>
     <input type="range" name="crashedProb" id="crashedProb" value="0" min="0" max="100" oninput="crashedProbOutput.value = crashedProb.value">
@@ -38,6 +44,7 @@
     <label>2nd partition percentage</label><br/>
     <input type="range" name="partitionTwoPerc" id="partitionTwoPerc" value="0" min="0" max="100" oninput="partitionTwoPercOutput.value = partitionTwoPerc.value">
     <output name="partitionTwoPercOutput" id="partitionTwoPercOutput">0</output><br/>
+
 
     <br/><input type="submit" value="Modify Simulation">
     </form>

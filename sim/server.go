@@ -35,6 +35,8 @@ type PublicSwarmUpdateServer struct {
 	lastSentId           int
 	cachedSwarmUpdates   []SwarmUpdate
 	cachedBroadcastTimer *time.Timer
+	numMsgDelSamples     int
+	numMsgDelOnTime      int
 
 	// we also handle toolbox
 	sn *SimulatedNetwork
@@ -91,6 +93,26 @@ func (ps *PublicSwarmUpdateServer) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		fmt.Printf("new partition 2 perc: %d", partitionSize)
 		ps.sn.configPartitionTwoPerc = partitionSize + ps.sn.configPartitionPerc
 	}
+	if toolboxUpdates["constantMessageDelay"] != nil {
+		val := toolboxUpdates["constantMessageDelay"][0]
+		cnstMsgDelay, _ := strconv.Atoi(val)
+		fmt.Printf("new constant message delay: %d", cnstMsgDelay)
+		ps.sn.constantMessageDelay = cnstMsgDelay
+	}
+
+	if toolboxUpdates["roundTime"] != nil {
+		val := toolboxUpdates["roundTime"][0]
+		rountTime, _ := strconv.Atoi(val)
+		fmt.Printf("new round time: %d", rountTime)
+		ps.sn.roundTime = rountTime
+	}
+
+	if toolboxUpdates["roundTimeSkew"] != nil {
+		val := toolboxUpdates["roundTimeSkew"][0]
+		rountTime, _ := strconv.Atoi(val)
+		fmt.Printf("new round time skew: %d", rountTime)
+		ps.sn.roundTimeSkew = rountTime
+	}
 	fmt.Fprintf(w, "success")
 }
 
@@ -133,11 +155,24 @@ func (ps *PublicSwarmUpdateServer) BroadcastCachedSwarmUpdates() {
 	ps.cachedBroadcastTimer.Stop()
 	ps.cachedBroadcastTimer = nil
 
+	// Print message delivery stats to terminal; haven't built it into viz yet
+	fmt.Printf("Message Delivery Stats: \t %d\t%d\t%v\n", ps.numMsgDelSamples-ps.numMsgDelOnTime, ps.numMsgDelSamples, float64(ps.numMsgDelOnTime)/float64(ps.numMsgDelSamples))
+
+	// send ES to viz
 	e := eventsource.DataEvent(JSONStr(ps.cachedSwarmUpdates))
 	e.ID(fmt.Sprintf("%d", ps.lastSentId)) // eventsource also has a factory that can do this, but keep it simple
 	ps.stream.Broadcast(e)
 	ps.lastSentId += 1
 	ps.cachedSwarmUpdates = make([]SwarmUpdate, 0)
+}
+
+func (ps *PublicSwarmUpdateServer) NoteMessageDelivery(status bool) {
+	ps.mu.Lock()
+	defer ps.mu.Unlock()
+	ps.numMsgDelSamples += 1
+	if status {
+		ps.numMsgDelOnTime += 1
+	}
 }
 
 func outputHeartbeat(pinkslip chan struct{}) {
@@ -155,12 +190,13 @@ func outputHeartbeat(pinkslip chan struct{}) {
 }
 
 func main() {
-	NUM_NODES := 100
+	NUM_NODES := 2
 	// this can be changed by toolbox so is just a starting value
-	UNIFORM_EDGE_RELIABILITY := 0.8 // prob success
+	UNIFORM_EDGE_RELIABILITY := 1. // prob success
 
 	ps := &PublicSwarmUpdateServer{}
 	sn := &SimulatedNetwork{}
+	sn.numNodes = NUM_NODES
 	ps.sn = sn
 	sn.uniformEdgeReliability = UNIFORM_EDGE_RELIABILITY
 	sn.Init() // I really wish go let you set default memory values

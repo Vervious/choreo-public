@@ -27,10 +27,17 @@ function updateData(edArr) {
             data.push(datum);
         } else {
             i = dataNodeIndex.get(nId);
+          if (data[i].ClockTime == ed.ClockTime) {
+            data[i].LastChangeTime = lastRequestedTime;
+            if ((ed.Corrected > 0) || (data[i].Corrected > 0)) {
+            data[i].Corrected = 1; 
+            }
+          } else {
             data[i].LastClockTime = data[i].ClockTime;
             data[i].ClockTime = ed.ClockTime;
             data[i].LastChangeTime = lastRequestedTime;
             data[i].Corrected = ed.Corrected;
+          }
         }
     });
 }
@@ -116,14 +123,14 @@ const drawDots = regl({
   attributes: {
     endPosition: function(context, props) {
         const coords = (clockTime, id) => {
-            let NDC = [clockTime / 100.0 - 1, (id - 50.0) / 50.0 * 0.5];
+            let NDC = [clockTime / 50.0 - 1, (id - 10.0) / 10.0 * 0.5];
             return props.projectFn(NDC);
         };
         return props.data.map(ed => coords(ed.ClockTime, ed.NodeID));
     },
     startPosition: function(context, props) {
         const coords = (clockTime, id) => {
-            let NDC = [clockTime / 100.0 - 1, (id - 50.0) / 50.0 * 0.5];
+            let NDC = [clockTime / 50.0 - 1, (id - 10.0) / 10.0 * 0.5];
             return props.projectFn(NDC);
         };
         return props.data.map(ed => coords(ed.LastClockTime, ed.NodeID));
@@ -216,7 +223,7 @@ const height = window.innerHeight;
 // projects a point in NDC to another point in NDC
 const projectFn = ([x, y]) => {
     // this basically loops the rectangle on itself into a circle
-    const r = (y + 1)/2;
+    const r = (y + 1); // /2
     const theta = (x + 1) * Math.PI;
     return [r * Math.cos(theta), r * Math.sin(theta)];
 }
