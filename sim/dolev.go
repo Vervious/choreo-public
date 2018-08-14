@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -188,10 +187,10 @@ func SpawnDolevNode(id int, sn *SimulatedNetwork, numTotalNodes int, ps *PublicS
 					cachedDay = sn.configDayMS
 					// clockSkew = int((rand.Float64()*1.0 - 1.0) * float64(sn.roundTimeSkew) / float64(sn.configDayMS) / 10.0)
 					clockSkew = 1000000 * float64(sn.roundTimeSkew) * 10.0 / float64(sn.configDayMS) / 10.0 * float64(id) * 10.0 // id is temp
-					if id == 1 {
-						fmt.Println("hello")
-						fmt.Println(clockSkew)
-					}
+					// if id == 1 {
+					// 	fmt.Println("hello")
+					// 	fmt.Println(clockSkew)
+					// }
 					clockTicker.Stop()
 					clockDur = time.Duration(10000000+clockSkew) * time.Nanosecond
 					clockTicker = time.NewTicker(clockDur)
@@ -257,13 +256,13 @@ func SpawnDolevNode(id int, sn *SimulatedNetwork, numTotalNodes int, ps *PublicS
 			case "checkround":
 				if m.contents < roundNum {
 					// we didn't wait long enough. For some reason, new-day messages trigger this prematurely.
-					fmt.Printf("Delta: \t%d\n", roundNum-m.contents)
-					ps.NoteMessageDelivery(false)
+					// fmt.Printf("Delta: \t%d\n", roundNum-m.contents)
+					ps.NoteMessageDelivery(false, roundNum-m.contents)
 				} else if m.contents > roundNum {
 					// this is fine, our clock is slower than the sender
-					ps.NoteMessageDelivery(true)
+					ps.NoteMessageDelivery(true, roundNum-m.contents)
 				} else {
-					ps.NoteMessageDelivery(true)
+					ps.NoteMessageDelivery(true, roundNum-m.contents)
 				}
 			case "proposed-day":
 				// HONEST DOLEV's - every sync message is basically a new-day message

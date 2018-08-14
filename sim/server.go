@@ -37,6 +37,8 @@ type PublicSwarmUpdateServer struct {
 	cachedBroadcastTimer *time.Timer
 	numMsgDelSamples     int
 	numMsgDelOnTime      int
+	lastTenDelta         []int
+	lastTenDeltaIndex    int
 
 	// we also handle toolbox
 	sn *SimulatedNetwork
@@ -120,6 +122,7 @@ func (ps *PublicSwarmUpdateServer) ListenAndServe(port string) {
 	ps.mu = &sync.Mutex{}
 	ps.cachedSwarmUpdates = make([]SwarmUpdate, 0)
 	ps.stream = eventsource.NewStream()
+	ps.lastTenDelta = make([]int, 10)
 
 	fmt.Println("Sim server is now running on port 8910.")
 
@@ -155,8 +158,13 @@ func (ps *PublicSwarmUpdateServer) BroadcastCachedSwarmUpdates() {
 	ps.cachedBroadcastTimer.Stop()
 	ps.cachedBroadcastTimer = nil
 
+	deltaSum := 0.0
+	for _, z := range ps.lastTenDelta {
+		deltaSum += float64(z)
+	}
+
 	// Print message delivery stats to terminal; haven't built it into viz yet
-	fmt.Printf("Message Delivery Stats: \t %d\t%d\t%v\n", ps.numMsgDelSamples-ps.numMsgDelOnTime, ps.numMsgDelSamples, float64(ps.numMsgDelOnTime)/float64(ps.numMsgDelSamples))
+	// fmt.Printf("Message Delivery Stats: \t %d\t%d\t%v\t%v\n", ps.numMsgDelSamples-ps.numMsgDelOnTime, ps.numMsgDelSamples, float64(ps.numMsgDelOnTime)/float64(ps.numMsgDelSamples), deltaSum/10.0)
 
 	// send ES to viz
 	e := eventsource.DataEvent(JSONStr(ps.cachedSwarmUpdates))
@@ -166,12 +174,18 @@ func (ps *PublicSwarmUpdateServer) BroadcastCachedSwarmUpdates() {
 	ps.cachedSwarmUpdates = make([]SwarmUpdate, 0)
 }
 
-func (ps *PublicSwarmUpdateServer) NoteMessageDelivery(status bool) {
+func (ps *PublicSwarmUpdateServer) NoteMessageDelivery(status bool, delta int) {
 	ps.mu.Lock()
 	defer ps.mu.Unlock()
 	ps.numMsgDelSamples += 1
 	if status {
 		ps.numMsgDelOnTime += 1
+	} else {
+		ps.lastTenDelta[ps.lastTenDeltaIndex] = delta
+		ps.lastTenDeltaIndex += 1
+		if ps.lastTenDeltaIndex > 9 {
+			ps.lastTenDeltaIndex = 0
+		}
 	}
 }
 
